@@ -6,7 +6,7 @@ go get github.com/coreyog/pipeline
 
 ## Usage
 
-See the [Examples](github.com/coreyog/pipeline/examples/test.go):
+See the [Examples](https://github.com/coreyog/pipeline/blob/master/examples/main.go):
 
 ```
 pipe := pipeline.New()

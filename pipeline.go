@@ -21,24 +21,30 @@ func New() (pipe *Pipeline) {
 	}
 }
 
-func (pipe *Pipeline) PushFunc(f interface{}) (err error) {
-	pair := reflectionPair{
-		Type:  reflect.TypeOf(f),
-		Value: reflect.ValueOf(f),
-	}
+func (pipe *Pipeline) PushFunc(fs ...interface{}) (err error) {
+	pairs := make([]reflectionPair, len(fs))
 
-	if pair.Type.Kind() != reflect.Func {
-		return ErrNotAFunction
-	}
-
-	if len(pipe.funcs) != 0 {
-		prev := pipe.funcs[len(pipe.funcs)-1]
-		if !doParametersMatch(prev.Type, pair.Type) {
-			return ErrParameterMismatch
+	for i, f := range fs {
+		pair := reflectionPair{
+			Type:  reflect.TypeOf(f),
+			Value: reflect.ValueOf(f),
 		}
+
+		if pair.Type.Kind() != reflect.Func {
+			return ErrNotAFunction
+		}
+
+		if len(pipe.funcs) != 0 {
+			prev := pipe.funcs[len(pipe.funcs)-1]
+			if !doParametersMatch(prev.Type, pair.Type) {
+				return ErrParameterMismatch
+			}
+		}
+
+		pairs[i] = pair
 	}
 
-	pipe.funcs = append(pipe.funcs, pair)
+	pipe.funcs = append(pipe.funcs, pairs...)
 
 	return nil
 }

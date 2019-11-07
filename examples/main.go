@@ -11,17 +11,7 @@ import (
 func main() {
 	pipe := pipeline.New()
 
-	err := pipe.PushFunc(os.Open)
-	if err != nil {
-		panic(err)
-	}
-
-	err = pipe.PushFunc(ioutil.ReadAll)
-	if err != nil {
-		panic(err)
-	}
-
-	err = pipe.PushFunc(toString)
+	err := pipe.PushFunc(os.Open, ioutil.ReadAll, toString)
 	if err != nil {
 		panic(err)
 	}

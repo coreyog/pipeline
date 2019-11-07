@@ -1,7 +1,10 @@
 package pipeline
 
 import (
+	"fmt"
 	"reflect"
+	"runtime"
+	"strings"
 )
 
 var errType = reflect.TypeOf((*error)(nil)).Elem()
@@ -81,6 +84,15 @@ func (pipe *Pipeline) Call(args ...interface{}) (results []interface{}, err erro
 	results = valueToInterface(values)
 
 	return results, nil
+}
+
+func (pipe *Pipeline) String() (s string) {
+	names := make([]string, len(pipe.funcs))
+	for i, f := range pipe.funcs {
+		names[i] = runtime.FuncForPC(f.Value.Pointer()).Name()
+	}
+
+	return fmt.Sprintf("[%s]", strings.Join(names, ", "))
 }
 
 func doParametersMatch(prev reflect.Type, next reflect.Type) (ok bool) {

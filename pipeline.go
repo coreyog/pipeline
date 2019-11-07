@@ -47,6 +47,10 @@ func (pipe *Pipeline) Length() int {
 	return len(pipe.funcs)
 }
 
+func (pipe *Pipeline) Reset() {
+	pipe.funcs = []reflectionPair{}
+}
+
 func (pipe *Pipeline) Call(args ...interface{}) (results []interface{}, err error) {
 	values := make([]reflect.Value, len(args))
 

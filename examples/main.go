@@ -41,5 +41,3 @@ func main() {
 func toString(data []byte) (str string) {
 	return string(data)
 }
-
-func x() {}

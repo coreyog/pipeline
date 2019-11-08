@@ -25,9 +25,9 @@ func New() (pipe *Pipeline) {
 }
 
 func (pipe *Pipeline) PushFunc(fs ...interface{}) (err error) {
-	pairs := make([]reflectionPair, len(fs))
+	temp := append(pipe.funcs[:0:0], pipe.funcs...)
 
-	for i, f := range fs {
+	for _, f := range fs {
 		pair := reflectionPair{
 			Type:  reflect.TypeOf(f),
 			Value: reflect.ValueOf(f),
@@ -37,17 +37,17 @@ func (pipe *Pipeline) PushFunc(fs ...interface{}) (err error) {
 			return ErrNotAFunction
 		}
 
-		if len(pipe.funcs) != 0 {
-			prev := pipe.funcs[len(pipe.funcs)-1]
+		if len(temp) != 0 {
+			prev := temp[len(temp)-1]
 			if !doParametersMatch(prev.Type, pair.Type) {
 				return ErrParameterMismatch
 			}
 		}
 
-		pairs[i] = pair
+		temp = append(temp, pair)
 	}
 
-	pipe.funcs = append(pipe.funcs, pairs...)
+	pipe.funcs = temp
 
 	return nil
 }
@@ -117,13 +117,31 @@ func doParametersMatch(prev reflect.Type, next reflect.Type) (ok bool) {
 		prevOutput = prevOutput[:len(prevOutput)-1]
 	}
 
-	if len(prevOutput) != len(nextInput) {
+	variadicIn := next.IsVariadic()
+	if len(prevOutput) != len(nextInput) && !variadicIn {
 		return false
 	}
 
 	for i := range prevOutput {
 		p := prevOutput[i]
-		n := nextInput[i]
+
+		var n reflect.Type
+		if i < len(nextInput) {
+			n = nextInput[i]
+			if i == len(nextInput)-1 && variadicIn {
+				// variadic types indicate they're an array of the type,
+				// we want the single type, call Elem()
+				n = n.Elem()
+			}
+		} else if variadicIn {
+			n = nextInput[len(nextInput)-1].Elem()
+		} else {
+			// Probably can't happen, playing it safe.
+			// This branch only happens if there's a differing
+			// count of parameters and they're not variadic
+			// which should be caught before this loop.
+			return false
+		}
 
 		if !p.AssignableTo(n) {
 			return false
